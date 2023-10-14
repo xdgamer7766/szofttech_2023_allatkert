@@ -3,7 +3,26 @@
 
 using namespace std;
 
+class User {
+    public:
+        string username;
+    private:
+        string password;
+        bool adopter = false;
+};
 
+class Animal {
+    public:
+        string name;
+        Species species;
+        bool gender;
+        int age;
+};
+
+class Species{
+    public:
+        string name;
+};
 
 
 int main()
