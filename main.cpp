@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 
 
 using namespace std;
@@ -21,20 +22,20 @@ bool isInt(const string& str)
 class User {
     public:
         string username;
-    private:
         string password;
         bool adopter = false;
+        bool careTaker = false;
+        User(string name, string pass){
+            username = name;
+            password = pass;
+        }
 };
 
-class Species{
-    public:
-        string name;
-};
 
 class Animal {
     public:
         string name;
-        Species species;
+        string species;
         bool gender;
         int age;
 };
@@ -64,9 +65,11 @@ int main()
 {
     bool run = true;
     string menu = "main_unregistered";
-    User currentUser;
+    User nullUser = User("null","null");
+    User currentUser = nullUser;
     while(run){
-            //unregistered user actions 
+
+        //unregistered user actions 
         if(menu == "main_unregistered"){
             printf("1. Belépés\n2. Regisztrálás\n3. Állatok megtekintése\n4. Kilépés a programból\n");
             switch (userInputInt(4)){
@@ -93,17 +96,49 @@ int main()
             }
         }
 
+        // login
         if(menu == "login"){
             printf("Kérlek add meg a felhasználónevedet és jelszavadat!");
 
         }
-        
-        if(menu == "register"){
 
+        //register
+        if(menu == "register"){
+            printf("Kérlek adj meg egy felhasználónevet!\n");
+            string username = userInputString();
+            printf("Kérlek adj meg egy jelszót\n");
+            string password = userInputString();
+
+            //checking if username already exists
+            ifstream userFile("user.txt");
+            string oneUser;
+            bool canCreateUser = true;
+            while (getline(userFile, oneUser)){
+                int pos = oneUser.find(" ");
+                string thisUser = oneUser.substr(0,pos);
+                if(username == thisUser){
+                    canCreateUser = false;
+                }
+            }
+
+            userFile.close();
+
+            //if register can happen
+            if(canCreateUser){
+                ofstream of("user.txt", ios::app);
+                currentUser = User(username,password);
+                of <<" \n" << username << " " << password << " false false\n";
+                printf("Sikeres regisztráció! \n\n");
+                //TODO: wait for user input
+                menu = "main_logged_in";
+                of.close();
+            }else{ // if it can't
+                printf("Foglalt felhasználónév!\n\n");
+            }
         }
 
 
-            //registered user actions
+        //registered user actions
         if(menu == "main_logged_in"){
             printf("1. Kilépés\n2. Jelentkezés gyakorlatra\n3. Állatok megtekintése\n4. Kilépés a programból\n");
             switch (userInputInt(4)){
@@ -130,20 +165,24 @@ int main()
             }
         }
 
+        //logout
         if(menu == "log_out"){
+            currentUser = nullUser;
+            menu = "main_unregistered";
 
         }
 
+        //applying_to_internship
         if(menu == "applying_to_internship"){
 
         }
 
-
-        //global actions
+        //animal menu
         if(menu == "animals"){
 
         }
 
+        //exit from the program
         if(menu == "exit"){
             run = false;
         }
