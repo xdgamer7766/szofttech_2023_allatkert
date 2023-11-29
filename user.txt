@@ -1,1 +1,2 @@
-Username Password AdopterStatus CareTakerStatus 
+Username Password CareTakerStatus AdoptedAnimals
+asd 123 false 0 
