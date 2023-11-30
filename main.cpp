@@ -146,13 +146,12 @@ int main()
                 if(username == thisUser && password == thisPassword){
                     canLogin = true;
                     currentUser = User(username,password);
-                    if(!oneUser.substr(pos0).find("0")){
+                    if(oneUser.substr(pos0).find("0") == std::string::npos){
                         currentUser.adopter = true;
                         //TODO: add User's adopted animals
                     }
-                    if(oneUser.substr(pos0).find("true")){
+                    if(oneUser.substr(pos0).find("true") != std::string::npos&& oneUser.substr(pos0).find("0") != std::string::npos){
                         currentUser.careTaker = true;
-                        cout << "Care taker";
                     }
 
                 }
@@ -197,7 +196,7 @@ int main()
             if(canCreateUser){
                 ofstream of("user.txt", ios::app);
                 currentUser = User(username,password);
-                of <<" \n" << username << " " << password << "false false false 0\n";
+                of <<" \n" << username << " " << password << " false false 0\n";
                 printf("Sikeres regisztráció! \n\n");
                 menu = "main_logged_in";
                 of.close();
@@ -254,7 +253,7 @@ int main()
             switch (userInputInt(5)){
                 //logout
                 case 1:
-                    menu = "logout";
+                    menu = "log_out";
                     break;
                 //apply for internship
                 case 2:
@@ -289,7 +288,19 @@ int main()
         }
 
         //applying_to_internship
-        if(menu == "applying_to_internship"){}
+        if(menu == "applying_to_internship"){
+            printf("Ha szeretnél gyakorlatra jelentkezni add meg a nevedet, ha szeretnél kilépni adj me egy számot\n");
+            string userInput = userInputString();
+            if(isInt(userInput)){
+                menu = "main_logged_in";
+            }else{
+                ofstream of("intern.txt", ios::app);
+                of <<" \n" << currentUser.username << " " << userInput << " false\n";
+                printf("Sikeres jelentkezés! \n\n");
+                menu = "main_logged_in";
+                of.close();
+            }
+        }
 
         //reviewing internships
         if(menu == "internships"){}
@@ -406,41 +417,36 @@ int main()
 
         //adopt animal
         if(menu == "adoptAnimal"){
-            cout << "Biztos örökbeszeretnéd fogadni az állatot? (1 - igen / 0 - nem)";
+            cout << "Biztos örökbeszeretnéd fogadni az állatot? (1 - igen / 0 - nem)\n";
             int userInput = userInputInt(1);
-            if(userInput == 1){
-                ifstream userFile("user.txt");
-                string oneUser;
-                int n = 0;
-                while (getline(userFile, oneUser)){
-                    int pos = oneUser.find(" ");
-                    string thisUser = oneUser.substr(0,pos);
-                    if(currentUser.username == thisUser){
-                        break;
-                    }
-                    n++;
-                }
-                
+            if(userInput == 1){                
                 ifstream is("user.txt"); 
                 ofstream ofs; 
                 ofs.open("temp.txt", ofstream::out);
+                string intern = "false";
+                if(currentUser.intern){
+                    intern = "true";
+                }
+                string adoptedAnimals = "0";
+                string strNew = currentUser.username + " " + currentUser.password + " false " + intern +" "+  selectedAnimalName;
+                if(currentUser.adoptedAnimals.size()){
+                    adoptedAnimals = appendVector(currentUser.adoptedAnimals);
+                    strNew = currentUser.username + " " + currentUser.password + " false " + intern + " " + adoptedAnimals + " " + selectedAnimalName;
 
-
-                char c; 
-                int line_no = 1; 
-                while (is.get(c)){ 
-                    if (c == '\n') 
-                    line_no++; 
-                    if (line_no != n) 
-                        ofs << c; 
-                    if (line_no == n)
-                        ofs <<" \n" << currentUser.username << " " << currentUser.password << " false "<< currentUser.intern << " " << appendVector(currentUser.adoptedAnimals) <<" selectedAnimalName "<<"\n"; 
-                } 
+                }
+                string strReplace = currentUser.username + " " + currentUser.password + " false " + intern + " " + adoptedAnimals;
+                string strTemp;
+                while(is >> strTemp){
+                    if(strTemp == strReplace){
+                        strTemp = strNew;
+                    }
+                    ofs << strTemp;
+                }
             
                 ofs.close(); 
                 is.close(); 
                 remove("user.txt"); 
-                rename("temp.txt", "user.txt");
+                 rename("temp.txt", "user.txt");
                 menu = "main_logged_in";
             }else{
                 menu = "animals";
@@ -451,16 +457,16 @@ int main()
         if(menu == "liveVideo"){
             int randomAction = rand() % 10 +1;
             if(randomAction < 4){
-                cout << selectedAnimalName << " éppen alszik\n";
+                cout << selectedAnimalName << " éppen alszik\n\n";
             }
             if (randomAction > 4 && randomAction < 7){
-                cout << selectedAnimalName << " éppen játszik\n";
+                cout << selectedAnimalName << " éppen játszik\n\n";
             }
             if (randomAction > 7){
-                cout << selectedAnimalName << " Nem látszik a kamerákon\n";
+                cout << selectedAnimalName << " Nem látszik a kamerákon\n\n";
             }
 
-            cout << "Ha kiszeretnél lépni nyomj 0-ást. \n Ha szeretnéd még nézni nyomj 1-est.";
+            cout << "Ha kiszeretnél lépni nyomj 1-est. \n Ha szeretnéd még nézni nyomj 0-ást.\n";
             int userInput = userInputInt(1);
             if(userInput){
                 if(currentUser.careTaker){

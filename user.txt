@@ -1,4 +1,3 @@
-Username Password CareTakerStatus Intern AdoptedAnimals
+Username Password CareTakerStatus Intern AdoptedAnimals 
 asd 123 false false 0 
 Ignashov 123 true false 0
-
