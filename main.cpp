@@ -1,6 +1,8 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <bits/stdc++.h> 
+#include <stdlib.h>
 
 
 using namespace std;
@@ -20,19 +22,30 @@ bool isInt(const string& str)
     return result;
 }
 
+string appendVector(vector<string> v)
+{
+    string returnString = "";
+    for(int i = 0; i < v.size(); i++){
+        returnString = returnString + " " + v.at(i);
+    }
+    return returnString;
+}
+
 class User {
     public:
         string username;
         string password;
         bool adopter = false;
         bool careTaker = false;
-        vector<string> AdoptedAnimals = {};
+        bool intern = false;
+        vector<string> adoptedAnimals = {};
         User(string name, string pass){
             username = name;
             password = pass;
         }
         void adoptAnimal(string animalName){
-            AdoptedAnimals.push_back(animalName);
+            adoptedAnimals.push_back(animalName);
+            adopter = true;
         }
 };
 
@@ -84,6 +97,7 @@ int main()
     User currentUser = nullUser;
     Animal nullAnimal = Animal("null","null",0,0);
     Animal selectedAnimal = nullAnimal;
+    string selectedAnimalName = "";
     while(run){
 
         //unregistered user actions 
@@ -138,6 +152,7 @@ int main()
                     }
                     if(oneUser.substr(pos0).find("true")){
                         currentUser.careTaker = true;
+                        cout << "Care taker";
                     }
 
                 }
@@ -147,8 +162,10 @@ int main()
                 cout << "Sikeresen bejelentkezett!\n";
                 if(currentUser.careTaker){
                     menu = "careTaker";
+                }else{
+                    menu = "main_logged_in";
                 }
-                menu = "main_logged_in";
+                
             }
 
             userFile.close();
@@ -180,7 +197,7 @@ int main()
             if(canCreateUser){
                 ofstream of("user.txt", ios::app);
                 currentUser = User(username,password);
-                of <<" \n" << username << " " << password << " false false\n";
+                of <<" \n" << username << " " << password << "false false false 0\n";
                 printf("Sikeres regisztráció! \n\n");
                 menu = "main_logged_in";
                 of.close();
@@ -190,12 +207,51 @@ int main()
         }
 
         //caretaker
-        if(menu == "careTaker"){}
+        if(menu == "careTaker"){
+            printf("1. Kilépés\n2. Gyakorlatra való jelentkezések átnézése\n3. Állatok megtekintése\n4. Új állat hozzáadása az adatbázishoz\n5. Gyakorlatozók átnézése\n6. Élő videó megtekintése\n7. Kilépés a programból\n");
+            switch (userInputInt(6)){
+                //logout
+                case 1:
+                    menu = "logout";
+                    break;
+                //look at internship offers
+                case 2:
+                    menu = "internships";
+                    break;
+                //listing animals
+                case 3:
+                    menu = "animals";
+                    break;
+                //listing animals
+                case 4:
+                    menu = "addAnimal";
+                    break;
+                //listing interns
+                case 5:
+                    menu = "interns";
+                    break;
+                // live videos
+                case 6:   
+                    menu = "careTakerLive";
+                    break;
+                //exit the program
+                case 7:
+                    menu = "exit";
+                    break;
+                //bad input
+                default:
+                    printf("Adj meg helyes értéket\n");
+                    break;
+            }
+        }
 
         //registered user actions
         if(menu == "main_logged_in"){
             printf("1. Kilépés\n2. Jelentkezés gyakorlatra\n3. Állatok megtekintése\n4. Kilépés a programból\n");
-            switch (userInputInt(4)){
+            if (currentUser.adopter){
+                printf("5. Örökbefogadott állatok megnézése\n");
+            }
+            switch (userInputInt(5)){
                 //logout
                 case 1:
                     menu = "logout";
@@ -212,9 +268,16 @@ int main()
                 case 4:
                     menu = "exit";
                     break;
+                case 5:
+                    if(currentUser.adopter){
+                        menu = "adoptedAnimals";
+                    }else{
+                        printf("Adj meg helyes értéket\n");
+                    }
+                    break;
                 //bad input
                 default:
-                    printf("Adj meg helyes értéket");
+                    printf("Adj meg helyes értéket\n");
                     break;
             }
         }
@@ -228,21 +291,227 @@ int main()
         //applying_to_internship
         if(menu == "applying_to_internship"){}
 
+        //reviewing internships
+        if(menu == "internships"){}
+
+        //list inters
+        if(menu == "interns"){}
+
         //animal menu
-        if(menu == "animals"){}
+        if(menu == "animals"){
+            ifstream animalFile("animal.txt");
+            string oneAnimal;
+            while (getline(animalFile, oneAnimal)){
+                cout << oneAnimal << "\n";
+            }
+            if(currentUser.careTaker){
+                cout << "Ha törölni szeretnél egy állatot add meg a nevét, ha kiakarsz lépni adj egy számot.\n";         
+            }else{
+                cout << "Ha örökbe szeretnél fogadni egy állatot add meg a nevét, ha kiakarsz lépni adj egy számot.\n";
+
+            }
+            string animalName = userInputString();
+            if(isInt(animalName)){
+                if (currentUser.careTaker){
+                    menu = "careTaker";
+                }
+                menu = "main_logged_in";
+            }else{
+                if(currentUser.careTaker){
+                    menu = "deleteAnimal";
+                }else{
+                    menu = "adoptAnimal";
+                }
+                selectedAnimalName = animalName;
+            }
+            animalFile.close();
+        }
 
         //add animal
-        if(menu == "addAnimal"){}
+        if(menu == "addAnimal"){
+            cout << "Add meg az állat nevét";
+            string animalName = userInputString();
+
+            ifstream animalFile("animal.txt");
+            string oneAnimal;
+            bool canAddAnimal = true;
+            while (getline(animalFile, oneAnimal)){
+                int pos = oneAnimal.find(" ");
+                string thisAnimal = oneAnimal.substr(0,pos);
+                if(animalName == thisAnimal){
+                    canAddAnimal = false;
+                }
+            }
+
+            animalFile.close();
+
+            if(canAddAnimal){
+                ofstream of("animal.txt", ios::app);
+                cout << "Add meg az állat faját";
+                string species = userInputString();
+                cout << "Add meg az állat nemét (1 - Hím / 0 - Nőstény)";
+                bool gender = userInputInt(1);
+                cout << "Add meg az állat korát";
+                int age = stoi(userInputString());
+                Animal thisAnimal = Animal(animalName,species,gender,age);
+                
+                of <<" \n" << thisAnimal.name << " " << thisAnimal.species << " " << thisAnimal.gender << " "<< thisAnimal.age << "\n";
+                printf("Állat sikeresen hozzáadva az adatbázishoz! \n\n");
+                menu = "careTaker";
+                of.close();
+            }else{
+                printf("Foglalt állatnév!\n\n");
+            }
+        }
 
         //delete animal
-        if(menu == "deleteAnimal"){}
+        if(menu == "deleteAnimal"){
+            cout << "Biztos kiszeretnéd törölni az állatot? (1 - igen / 0 - nem)";
+            int userInput = userInputInt(1);
+            if(userInput == 1){
+                ifstream animalFile("animal.txt");
+                string oneAnimal;
+                int n = 0;
+                while (getline(animalFile, oneAnimal)){
+                    int pos = oneAnimal.find(" ");
+                    string thisAnimal = oneAnimal.substr(0,pos);
+                    if(selectedAnimalName == thisAnimal){
+                        break;
+                    }
+                    n++;
+                }
+                
+                ifstream is("animal.txt"); 
+                ofstream ofs; 
+                ofs.open("temp.txt", ofstream::out);
+
+                char c; 
+                int line_no = 1; 
+                while (is.get(c)){ 
+                    if (c == '\n') 
+                    line_no++; 
+                    if (line_no != n) 
+                        ofs << c; 
+                } 
+            
+                ofs.close(); 
+                is.close(); 
+                remove("animal.txt"); 
+                rename("temp.txt", "animal.txt");
+                menu = "careTaker";
+            }else{
+                menu = "animals";
+            }
+        }
 
         //adopt animal
-        if(menu == "adoptAnimal"){}
+        if(menu == "adoptAnimal"){
+            cout << "Biztos örökbeszeretnéd fogadni az állatot? (1 - igen / 0 - nem)";
+            int userInput = userInputInt(1);
+            if(userInput == 1){
+                ifstream userFile("user.txt");
+                string oneUser;
+                int n = 0;
+                while (getline(userFile, oneUser)){
+                    int pos = oneUser.find(" ");
+                    string thisUser = oneUser.substr(0,pos);
+                    if(currentUser.username == thisUser){
+                        break;
+                    }
+                    n++;
+                }
+                
+                ifstream is("user.txt"); 
+                ofstream ofs; 
+                ofs.open("temp.txt", ofstream::out);
+
+
+                char c; 
+                int line_no = 1; 
+                while (is.get(c)){ 
+                    if (c == '\n') 
+                    line_no++; 
+                    if (line_no != n) 
+                        ofs << c; 
+                    if (line_no == n)
+                        ofs <<" \n" << currentUser.username << " " << currentUser.password << " false "<< currentUser.intern << " " << appendVector(currentUser.adoptedAnimals) <<" selectedAnimalName "<<"\n"; 
+                } 
+            
+                ofs.close(); 
+                is.close(); 
+                remove("user.txt"); 
+                rename("temp.txt", "user.txt");
+                menu = "main_logged_in";
+            }else{
+                menu = "animals";
+            }
+        }
 
         //live video of animal
-        if(menu == "liveVideo"){}
+        if(menu == "liveVideo"){
+            int randomAction = rand() % 10 +1;
+            if(randomAction < 4){
+                cout << selectedAnimalName << " éppen alszik\n";
+            }
+            if (randomAction > 4 && randomAction < 7){
+                cout << selectedAnimalName << " éppen játszik\n";
+            }
+            if (randomAction > 7){
+                cout << selectedAnimalName << " Nem látszik a kamerákon\n";
+            }
 
+            cout << "Ha kiszeretnél lépni nyomj 0-ást. \n Ha szeretnéd még nézni nyomj 1-est.";
+            int userInput = userInputInt(1);
+            if(userInput){
+                if(currentUser.careTaker){
+                    menu = "careTakerLive";
+                }else{
+                menu = "adoptedAnimals";
+                }
+            }
+        }
+
+        //adopted animals
+        if(menu == "adoptedAnimals"){
+            for (int i = 0; i< currentUser.adoptedAnimals.size(); i++){
+                cout << currentUser.adoptedAnimals.at(i) << "\n";
+            }
+            cout << "Ha szeretnéd valamelyiköjüket élőben látni írd be a nevüket\nHa vissza szeretnél lépni írj be egy számot\n";
+            string userInput = userInputString();
+            if(isInt(userInput)){
+                menu = "main_logged_in";
+            }else{
+                bool canLook = false;
+                for (int i = 0; i< currentUser.adoptedAnimals.size(); i++){
+                    if(currentUser.adoptedAnimals.at(i) == userInput){
+                        canLook = true;
+                    }
+                }
+                if(canLook){
+                    selectedAnimalName = userInput;
+                    menu = "liveVideo";
+                }else{
+                    cout << "Nincsen ilyen nevü örökbefogadott állatod\n";
+                }
+            }
+        }
+
+        //care taker live video with animals
+        if(menu == "careTakerLive"){
+            ifstream animalFile("animal.txt");
+            string oneAnimal;
+            while (getline(animalFile, oneAnimal)){
+                cout << oneAnimal << "\n";
+            }
+            cout << "Ha szeretnéd valamelyiköjüket élőben látni írd be a nevüket\nHa vissza szeretnél lépni írj be egy számot\n";
+            string userInput = userInputString();
+            if(isInt(userInput)){
+                menu = "careTaker";
+            }else{
+                selectedAnimalName = userInput;
+                menu = "liveVideo";
+            }
+        }
 
         //exit from the program
         if(menu == "exit"){

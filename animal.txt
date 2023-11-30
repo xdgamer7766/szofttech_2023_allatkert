@@ -1,1 +1,4 @@
 Name Species Gender Age
+Pocok Medve Male 30
+Toki Medve Male 12
+Reka Medve Female 30
